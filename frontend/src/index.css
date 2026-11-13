@@ -1,0 +1,35 @@
+/* One important detail: index.css is global, whereas App.css will contain styles specific to our portfolio components. */
+
+
+/* Import a clean, modern font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Reset default browser spacing */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Global website styles */
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8f7f4;
+  color: #1d1d1f;
+  line-height: 1.6;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Remove default link styling */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font: inherit;
+}

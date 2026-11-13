@@ -1,0 +1,64 @@
+# ==========================================
+# PYTHON & DJANGO
+# ==========================================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Django local database, logs, and media uploads
+*.sqlite3
+db.sqlite3-journal
+*.log
+local_settings.py
+/media/
+/staticfiles/
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# NODE, REACT & VITE
+# ==========================================
+# Dependencies
+node_modules/
+
+# Vite production build output
+dist/
+dist-ssr/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local environment files
+*.local
+
+# ==========================================
+# IDEs & OPERATING SYSTEMS
+# ==========================================
+# VS Code & PyCharm
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS & Windows
+.DS_Store
+Thumbs.db
