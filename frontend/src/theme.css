@@ -1,0 +1,102 @@
+
+/* ========================================
+   1. LIGHT THEME
+======================================== */
+
+:root {
+  color-scheme: light;
+
+  --color-background: #F7F5EF;
+  --color-surface: #FFFFFF;
+  --color-text: #20201E;
+  --color-muted: #77756F;
+  --color-accent: #B58A3A;
+  --color-accent-light: #EDE3CF;
+  --color-border: #EAE7DE;
+
+  --toggle-bg: #FFFFFF;
+  --toggle-text: #20201E;
+  --toggle-border: #EAE7DE;
+
+  --max-width: 1200px;
+
+  --section-spacing: clamp(5rem, 10vw, 9rem);
+  --content-spacing: clamp(1.5rem, 4vw, 3rem);
+
+  --radius-card: 1.25rem;
+  --radius-button: 999px;
+}
+
+/* ========================================
+   2. DARK THEME
+======================================== */
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-background: #171816;
+  --color-surface: #22231F;
+  --color-text: #F2F0E9;
+  --color-muted: #AAA79E;
+  --color-accent: #D2AA63;
+  --color-accent-light: #393226;
+  --color-border: #34352F;
+
+  --toggle-bg: #30312C;
+  --toggle-text: #F2F0E9;
+  --toggle-border: #484940;
+}
+
+/* ========================================
+   3. GLOBAL STYLES
+======================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--color-accent-light);
+  color: var(--color-text);
+}
