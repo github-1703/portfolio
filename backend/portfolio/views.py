@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.conf import settings 
+from django.core.mail import EmailMessage
 
 # Create your views here.
 from rest_framework.decorators import api_view
@@ -72,7 +74,38 @@ def contact_api(request):
     serializer = ContactMessageSerializer(data=request.data)#Receives submitted JSON data
 
     if serializer.is_valid():
-        serializer.save()
+        contact=serializer.save()
+        subject= f"Portfolio Contact from {contact.name}"
+        
+        email_body = (
+            f"Name: {contact.name}\n"
+            f"Email: {contact.email}\n\n"
+            f"Message:\n{contact.message}"
+        )
+
+        email = EmailMessage(
+            subject=subject,
+            body=email_body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[settings.CONTACT_EMAIL],#my mail
+            reply_to=[contact.email],
+        )
+
+        try:
+            email.send(fail_silently=False)
+
+        except Exception:
+            return Response(
+                {
+                    "message": (
+                        "Your message was saved, "
+                        "but the email could not be sent."
+                    )
+                },
+                status=500
+            )
+
+        
 
         return Response(
             {
