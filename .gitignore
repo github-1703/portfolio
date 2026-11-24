@@ -62,3 +62,27 @@ lerna-debug.log*
 # macOS & Windows
 .DS_Store
 Thumbs.db
+
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Local databases and backups
+db.sqlite3
+db.sqlite3.backup
+*.sqlite3
+
+# Private data exports
+admin_user.json
+portfolio_data.json
+
+# Django generated files
+staticfiles/
+media/

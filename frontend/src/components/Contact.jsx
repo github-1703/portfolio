@@ -1,33 +1,53 @@
 
-function Contact({ formData, setFormData }) {
-  const handleSubmit = (e) => {
-    e.preventDefault();
+import { useState } from "react";
 
-    fetch("http://127.0.0.1:8000/api/contact/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Something went wrong");
-        }
-        return response.json();
-      })
-      .then(() => {
-        alert("Message sent successfully!");
-        setFormData({
-          name: "",
-          email: "",
-          message: "",
-        });
-      })
-      .catch((error) => {
-        console.error("Error sending message:", error);
-        alert("Failed to send message. Please try again.");
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
+function Contact({ formData, setFormData }) {
+  const [isSending, setIsSending] = useState(false);//setIsSending(true) means the request has started setIsSending(false) means the request has finished
+  const [status, setStatus] = useState({
+    type: "",
+    message: "",
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSending(true);
+    setStatus({ type: "", message: "" });
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/contact/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+      setStatus({
+        type: "success",
+        message: data.message || "Message sent successfully",
+      });
+      setFormData({
+        name: "",
+        email: "",
+        message: "",
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
+
+      setStatus({
+        type: "error",
+        message: error.message || "Failed to send message",
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -36,8 +56,8 @@ function Contact({ formData, setFormData }) {
         <p className="eyebrow">GET IN TOUCH</p>
         <h2>Let's work together.</h2>
         <p>
-          Have a project in mind, an opportunity, or just want to connect?
-          Feel free to send me a message.
+          Have a project in mind, an opportunity, or just want to connect? Feel
+          free to send me a message.
         </p>
       </div>
 
@@ -46,20 +66,18 @@ function Contact({ formData, setFormData }) {
           type="text"
           placeholder="Your name"
           value={formData.name}
-          onChange={(e) =>
-            setFormData({ ...formData, name: e.target.value })
-          }
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           required
+          disabled={isSending}
         />
 
         <input
           type="email"
           placeholder="Your email"
           value={formData.email}
-          onChange={(e) =>
-            setFormData({ ...formData, email: e.target.value })
-          }
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required
+          disabled={isSending}
         />
 
         <textarea
@@ -70,9 +88,21 @@ function Contact({ formData, setFormData }) {
             setFormData({ ...formData, message: e.target.value })
           }
           required
+          disabled={isSending}
         />
 
-        <button type="submit">Send message ↗</button>
+        <button type="submit" disabled={isSending}>
+          {isSending ? "Sending.." : "Send Message ↗"}
+        </button>
+        {status.message && (
+          <p
+            className={`form-status ${status.type}`}
+            role="status"
+            aria-live="polite"
+          >
+            {status.message}
+          </p>
+        )}
       </form>
     </section>
   );
