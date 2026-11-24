@@ -1,10 +1,29 @@
+
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000"
+).replace(/\/+$/, "");
+
+function getImageUrl(path) {
+  if (!path) return null;
+
+  // Cloudinary or other absolute image URL
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  // Local Django media path
+  return `${API_BASE_URL}/${path.replace(/^\/+/, "")}`;
+}
+
 function ProjectCard({ project }) {
+  const imageUrl = getImageUrl(project.image);
+
   return (
     <article className="project-card">
       <div className="project-image">
-        {project.image && (
+        {imageUrl && (
           <img
-            src={`http://127.0.0.1:8000${project.image}`}
+            src={imageUrl}
             alt={project.title}
           />
         )}
@@ -32,6 +51,7 @@ function ProjectCard({ project }) {
               GitHub ↗
             </a>
           )}
+
           {(project.live_url || project.github_url) && (
             <a
               href={project.live_url || project.github_url}

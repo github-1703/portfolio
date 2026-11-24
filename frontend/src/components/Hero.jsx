@@ -3,18 +3,22 @@ import { FaGithub, FaLinkedin } from "react-icons/fa";
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000"
-).replace(/\/$/, "");
+).replace(/\/+$/, "");
+
+function getImageUrl(path) {
+  if (!path) return null;
+
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  return `${API_BASE_URL}/${path.replace(/^\/+/, "")}`;
+}
 
 function Hero({ myprofile }) {
   if (!myprofile) return null;
 
-  const profileImage = myprofile.profile_image
-    ? myprofile.profile_image.startsWith("http")
-      ? myprofile.profile_image
-      : `${API_BASE_URL}${
-          myprofile.profile_image.startsWith("/") ? "" : "/"
-        }${myprofile.profile_image}`
-    : null;
+  const profileImage = getImageUrl(myprofile.profile_image);
 
   return (
     <section className="hero" id="home">
@@ -81,6 +85,7 @@ function Hero({ myprofile }) {
             src={profileImage}
             alt={`Portrait of ${myprofile.name}`}
           />
+
           <div className="hero-image-caption">
             <span></span>
             <span>Prashant Shah</span>
