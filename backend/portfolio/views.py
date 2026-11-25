@@ -103,7 +103,13 @@ def _send_contact_email(contact, subject, body):
             },
             timeout=15,
         )
-        response.raise_for_status()
+        if not response.ok:
+            logger.error(
+                "Brevo rejected the email: %s %s",
+                response.status_code,
+                response.text[:500],
+            )
+            response.raise_for_status()
         return True
 
     email = EmailMessage(
