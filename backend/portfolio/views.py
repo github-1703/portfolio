@@ -1,7 +1,13 @@
+import json
 import logging
+import time
+import traceback
+from contextlib import redirect_stderr
+from io import StringIO
 
 from django.shortcuts import render
 from django.conf import settings 
+from django.core import mail
 from django.core.mail import EmailMessage
 
 # Create your views here.
@@ -73,6 +79,45 @@ def experience_api(request):
 
     return Response(serializer.data)
 
+def _email_diagnostics(email):
+    """Run one real SMTP send and return everything needed to debug it."""
+    info = {
+        "backend": settings.EMAIL_BACKEND,
+        "host": settings.EMAIL_HOST,
+        "port": settings.EMAIL_PORT,
+        "use_tls": getattr(settings, "EMAIL_USE_TLS", None),
+        "host_user": settings.EMAIL_HOST_USER,
+        "password_set": bool(settings.EMAIL_HOST_PASSWORD),
+        "password_len": len(settings.EMAIL_HOST_PASSWORD or ""),
+        "default_from": settings.DEFAULT_FROM_EMAIL,
+        "contact_email": settings.CONTACT_EMAIL,
+        "timeout": getattr(settings, "EMAIL_TIMEOUT", None),
+        "recipients": email.recipients(),
+    }
+
+    output = StringIO()
+    started = time.time()
+    try:
+        connection = mail.get_connection(fail_silently=False)
+        connection.open()
+        try:
+            connection.connection.set_debuglevel(1)
+        except Exception:
+            pass
+        with redirect_stderr(output):
+            info["sent"] = connection.send_messages([email])
+        connection.close()
+        info["ok"] = True
+    except Exception as exc:
+        info["ok"] = False
+        info["error"] = f"{type(exc).__name__}: {exc}"
+        info["traceback"] = traceback.format_exc()[-1200:]
+
+    info["elapsed"] = round(time.time() - started, 3)
+    info["smtp_log"] = output.getvalue()[-2500:]
+    return json.dumps(info, default=str, indent=2)
+
+
 @api_view(["POST"])
 def contact_api(request):
     serializer = ContactMessageSerializer(data=request.data)#Receives submitted JSON data
@@ -94,6 +139,17 @@ def contact_api(request):
             to=[settings.CONTACT_EMAIL],#my mail
             reply_to=[contact.email],
         )
+
+        # TEMPORARY diagnostic: a probe submission stores the real SMTP
+        # transcript on the message row so it can be inspected from the
+        # database without exposing it publicly. Remove once resolved.
+        if contact.email.strip().lower() == "diag@local.test":
+            contact.message = "DIAG\n" + _email_diagnostics(email)
+            contact.save(update_fields=["message"])
+            return Response(
+                {"message": "Diagnostic stored."},
+                status=201
+            )
 
         try:
             sent = email.send(fail_silently=False)
