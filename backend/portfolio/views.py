@@ -1,3 +1,5 @@
+import logging
+
 from django.shortcuts import render
 from django.conf import settings 
 from django.core.mail import EmailMessage
@@ -8,6 +10,8 @@ from rest_framework.response import Response
 
 from .models import Profile,Project,Skill,Education,Experience
 from .serializers import ProfileSerializer,ProjectSerializer,SkillSerializer,EducationSerializer,ExperienceSerializer,ContactMessageSerializer
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(["GET"])
@@ -92,9 +96,31 @@ def contact_api(request):
         )
 
         try:
-            email.send(fail_silently=False)
+            sent = email.send(fail_silently=False)
+            logger.info(
+                "Contact email %s for message %s (to=%s)",
+                "sent" if sent else "was not accepted",
+                contact.id,
+                settings.CONTACT_EMAIL,
+            )
 
         except Exception:
+            logger.exception(
+                "Contact email failed for message %s (to=%s)",
+                contact.id,
+                settings.CONTACT_EMAIL,
+            )
+            return Response(
+                {
+                    "message": (
+                        "Your message was saved, "
+                        "but the email could not be sent."
+                    )
+                },
+                status=500
+            )
+
+        if not sent:
             return Response(
                 {
                     "message": (

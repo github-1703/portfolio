@@ -185,7 +185,11 @@ EMAIL_HOST_USER= os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD= os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-CONTACT_EMAIL = EMAIL_HOST_USER
+# Where contact-form notifications are delivered. Defaults to the SMTP account,
+# but you can point it at a different inbox (CONTACT_EMAIL env var) so the
+# message is not From and To the same Gmail address, which Gmail often flags
+# as spam.
+CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL") or EMAIL_HOST_USER
 
 STORAGES = {
     "default": {
