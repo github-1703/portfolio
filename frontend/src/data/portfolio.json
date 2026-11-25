@@ -1,0 +1,121 @@
+{
+  "generated_at": "2026-11-25T13:33:09.703928+00:00",
+  "profile": {
+    "id": 1,
+    "name": "Prashant Shah",
+    "title": "Computer Engineering Student / Aspiring Backend Developer",
+    "bio": "Computer Engineering student with hands-on project experience in Python, Django, and Django REST Framework. Interested\r\nin backend development, building web applications, and developing practical software engineering skills through projects.",
+    "email": "exam934@gmail.com",
+    "location": "Dharan",
+    "profile_image": "https://res.cloudinary.com/fu2swqeo/image/upload/f_auto,q_auto:good,w_440,c_fill,g_auto:face,ar_4:5/v1/media/profile/IMG_20260902_210526_qw7y7h",
+    "github_url": "https://github.com/github-1703",
+    "linkedin_url": "https://www.linkedin.com/in/prashant-shah-695668253/"
+  },
+  "projects": [
+    {
+      "id": 3,
+      "title": "MediCore — Hospital Management System",
+      "description": "A full-stack Hospital Management System built with Node.js + Express + MySQL + Vanilla JS. Manage patients, doctors, appointments, billing and medical records through a clean web interface.",
+      "github_url": "https://github.com/github-1703/Hospital-Management-System",
+      "live_url": "",
+      "image": "https://res.cloudinary.com/fu2swqeo/image/upload/f_auto,q_auto:good,w_900,c_limit/v1/media/projects/images_zhzwij",
+      "featured": true,
+      "created_at": "2026-11-13 10:40:29.478000+00:00",
+      "technologies": [
+        {
+          "id": 2,
+          "name": "Django",
+          "category": "backend"
+        },
+        {
+          "id": 5,
+          "name": "SQL",
+          "category": "database"
+        },
+        {
+          "id": 3,
+          "name": "React",
+          "category": "frontend"
+        },
+        {
+          "id": 1,
+          "name": "Python",
+          "category": "language"
+        },
+        {
+          "id": 4,
+          "name": "Git",
+          "category": "tools"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Real-Time-Face-Emotion-Detection",
+      "description": "Real-Time-Face-Emotion-Detection of your video. It can detect which emotion you have right now live using your live video",
+      "github_url": "https://github.com/github-1703/Real-Time-Face-Emotion-Detection",
+      "live_url": "",
+      "image": "https://res.cloudinary.com/fu2swqeo/image/upload/f_auto,q_auto:good,w_900,c_limit/v1/media/projects/image_b130f73a_pr5iqm",
+      "featured": true,
+      "created_at": "2026-11-13 10:39:42.721000+00:00",
+      "technologies": [
+        {
+          "id": 1,
+          "name": "Python",
+          "category": "language"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "Placement-Preparation-System",
+      "description": "ML-Based Resume Analysis and Aptitude Evaluation System\r\n\r\nA unified web platform for placement preparation that integrates resume analysis, aptitude assessment, technical evaluation, and code practice — all powered by machine learning.",
+      "github_url": "https://github.com/github-1703/Placement-Preparation-System",
+      "live_url": "",
+      "image": "https://res.cloudinary.com/fu2swqeo/image/upload/f_auto,q_auto:good,w_900,c_limit/v1/media/projects/image_f055d4b_o06vbn",
+      "featured": true,
+      "created_at": "2026-11-13 10:37:59.317000+00:00",
+      "technologies": []
+    }
+  ],
+  "skills": [
+    {
+      "id": 2,
+      "name": "Django",
+      "category": "backend"
+    },
+    {
+      "id": 5,
+      "name": "SQL",
+      "category": "database"
+    },
+    {
+      "id": 3,
+      "name": "React",
+      "category": "frontend"
+    },
+    {
+      "id": 1,
+      "name": "Python",
+      "category": "language"
+    },
+    {
+      "id": 4,
+      "name": "Git",
+      "category": "tools"
+    }
+  ],
+  "education": [
+    {
+      "id": 1,
+      "institution": "IOE- Purwanchal Campus, Dharan",
+      "degree": "Bachelor of Computer Engineering",
+      "field_of_study": "Computer Science",
+      "start_year": 2022,
+      "end_year": 2027,
+      "description": "",
+      "currently_studying": true
+    }
+  ],
+  "experience": []
+}

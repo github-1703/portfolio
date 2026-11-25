@@ -1,22 +1,15 @@
 
-const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000"
-).replace(/\/+$/, "");
+import { useState } from "react";
 
-function getImageUrl(path) {
-  if (!path) return null;
-
-  // Cloudinary or other absolute image URL
-  if (/^https?:\/\//i.test(path)) {
-    return path;
-  }
-
-  // Local Django media path
-  return `${API_BASE_URL}/${path.replace(/^\/+/, "")}`;
-}
+import { getImageUrl } from "../lib/imageUrl";
 
 function ProjectCard({ project }) {
-  const imageUrl = getImageUrl(project.image);
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const imageUrl =
+    !imageFailed && project.image
+      ? getImageUrl(project.image, { width: 900 })
+      : null;
 
   return (
     <article className="project-card">
@@ -25,6 +18,11 @@ function ProjectCard({ project }) {
           <img
             src={imageUrl}
             alt={project.title}
+            width="900"
+            height="563"
+            loading="lazy"
+            decoding="async"
+            onError={() => setImageFailed(true)}
           />
         )}
       </div>

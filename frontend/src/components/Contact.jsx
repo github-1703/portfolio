@@ -1,15 +1,56 @@
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000"
+).replace(/\/+$/, "");
+
+// The backend is only needed for the contact form now. When this page is opened
+// after the free Render service has slept, waking it takes ~30s. We start that
+// wake-up as soon as the contact section is about to be seen, so by the time a
+// visitor types a message and submits, the backend is already warm.
+let backendWarmed = false;
 
 function Contact({ formData, setFormData }) {
+  const sectionRef = useRef(null);
   const [isSending, setIsSending] = useState(false);//setIsSending(true) means the request has started setIsSending(false) means the request has finished
   const [status, setStatus] = useState({
     type: "",
     message: "",
   });
+
+  useEffect(() => {
+    if (backendWarmed) return;
+
+    const warmBackend = () => {
+      if (backendWarmed) return;
+      backendWarmed = true;
+
+      // Fire-and-forget: we only care that the container boots.
+      fetch(`${API_BASE_URL}/api/profile/`, { cache: "no-store" }).catch(
+        () => {},
+      );
+    };
+
+    const node = sectionRef.current;
+    if (!node || !("IntersectionObserver" in window)) {
+      warmBackend();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          warmBackend();
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,7 +92,7 @@ function Contact({ formData, setFormData }) {
   };
 
   return (
-    <section className="contact" id="contact">
+    <section className="contact" id="contact" ref={sectionRef}>
       <div className="section-heading">
         <p className="eyebrow">GET IN TOUCH</p>
         <h2>Let's work together.</h2>

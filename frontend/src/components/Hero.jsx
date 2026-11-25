@@ -1,24 +1,36 @@
 
+import { useState } from "react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 
-const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000"
-).replace(/\/+$/, "");
+import { getImageSrcSet, getImageUrl } from "../lib/imageUrl";
 
-function getImageUrl(path) {
-  if (!path) return null;
+const FALLBACK_IMAGE = "/images/profile.jpg";
 
-  if (/^https?:\/\//i.test(path)) {
-    return path;
-  }
-
-  return `${API_BASE_URL}/${path.replace(/^\/+/, "")}`;
-}
+const fallbackProfile = {
+  name: "Prashant Shah",
+  title: "Computer Engineering Student / Aspiring Backend Developer",
+  bio: "",
+  profile_image: FALLBACK_IMAGE,
+  github_url: "https://github.com/github-1703",
+  linkedin_url: "https://www.linkedin.com/in/prashant-shah-695668253/",
+};
 
 function Hero({ myprofile }) {
-  if (!myprofile) return null;
+  const profile = myprofile || fallbackProfile;
 
-  const profileImage = getImageUrl(myprofile.profile_image);
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const imageUrl =
+    !imageFailed && profile.profile_image
+      ? getImageUrl(profile.profile_image, { width: 440 })
+      : FALLBACK_IMAGE;
+
+  // 1x (440w) and 2x (880w) variants so the portrait stays sharp on retina
+  // and high-density phone screens.
+  const imageSrcSet =
+    !imageFailed && profile.profile_image
+      ? getImageSrcSet(profile.profile_image, [440, 880])
+      : undefined;
 
   return (
     <section className="hero" id="home">
@@ -27,24 +39,18 @@ function Hero({ myprofile }) {
           COMPUTER ENGINEERING STUDENT · DEVELOPER
         </p>
 
-        <h1>
-          Hello, I'm {myprofile.name}.
-        </h1>
+        <h1>Hello, I'm {profile.name}.</h1>
 
-        <h2 className="hero-title">
-          {myprofile.title}
-        </h2>
+        <h2 className="hero-title">{profile.title}</h2>
 
-        <p className="hero-description">
-          {myprofile.bio}
-        </p>
+        {profile.bio && (
+          <p className="hero-description">{profile.bio}</p>
+        )}
 
         <div className="hero-actions">
           <a href="#work" className="primary-link">
             <span>Explore my work</span>
-            <span className="link-arrow" aria-hidden="true">
-              ↗
-            </span>
+            <span className="link-arrow" aria-hidden="true">↗</span>
           </a>
 
           <a href="#contact" className="secondary-link">
@@ -53,9 +59,9 @@ function Hero({ myprofile }) {
         </div>
 
         <div className="hero-social">
-          {myprofile.github_url && (
+          {profile.github_url && (
             <a
-              href={myprofile.github_url}
+              href={profile.github_url}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Visit my GitHub profile"
@@ -65,9 +71,9 @@ function Hero({ myprofile }) {
             </a>
           )}
 
-          {myprofile.linkedin_url && (
+          {profile.linkedin_url && (
             <a
-              href={myprofile.linkedin_url}
+              href={profile.linkedin_url}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Visit my LinkedIn profile"
@@ -79,19 +85,22 @@ function Hero({ myprofile }) {
         </div>
       </div>
 
-      {profileImage && (
-        <div className="hero-image">
-          <img
-            src={profileImage}
-            alt={`Portrait of ${myprofile.name}`}
-          />
+      <div className="hero-image">
+        <img
+          src={imageUrl}
+          srcSet={imageSrcSet}
+          sizes="(max-width: 900px) 90vw, 440px"
+          alt={`Portrait of ${profile.name}`}
+          fetchPriority="high"
+          decoding="async"
+          onError={() => setImageFailed(true)}
+        />
 
-          <div className="hero-image-caption">
-            <span></span>
-            <span>Prashant Shah</span>
-          </div>
+        <div className="hero-image-caption">
+          <span></span>
+          <span>{profile.name}</span>
         </div>
-      )}
+      </div>
     </section>
   );
 }
