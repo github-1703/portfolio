@@ -185,11 +185,22 @@ EMAIL_HOST_USER= os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD= os.environ.get("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-# Where contact-form notifications are delivered. Defaults to the SMTP account,
-# but you can point it at a different inbox (CONTACT_EMAIL env var) so the
-# message is not From and To the same Gmail address, which Gmail often flags
-# as spam.
-CONTACT_EMAIL = os.environ.get("CONTACT_EMAIL") or EMAIL_HOST_USER
+
+# Where contact-form notifications are delivered.
+CONTACT_EMAIL = (
+    os.environ.get("CONTACT_EMAIL") or EMAIL_HOST_USER or "exam934@gmail.com"
+)
+
+# Render's free tier blocks outbound SMTP (ports 25/465/587), so production
+# sends the notification over HTTPS through Brevo instead. Set BREVO_API_KEY
+# on the host to enable it. Local development falls back to Gmail SMTP above.
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY", "")
+BREVO_SENDER_EMAIL = (
+    os.environ.get("BREVO_SENDER_EMAIL")
+    or EMAIL_HOST_USER
+    or "exam934@gmail.com"
+)
+BREVO_SENDER_NAME = os.environ.get("BREVO_SENDER_NAME", "Portfolio Contact Form")
 
 STORAGES = {
     "default": {

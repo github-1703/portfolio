@@ -1,13 +1,8 @@
-import json
 import logging
-import time
-import traceback
-from contextlib import redirect_stderr
-from io import StringIO
 
+import requests
 from django.shortcuts import render
 from django.conf import settings 
-from django.core import mail
 from django.core.mail import EmailMessage
 
 # Create your views here.
@@ -79,124 +74,92 @@ def experience_api(request):
 
     return Response(serializer.data)
 
-def _email_diagnostics(email):
-    """Run one real SMTP send and return everything needed to debug it."""
-    info = {
-        "backend": settings.EMAIL_BACKEND,
-        "host": settings.EMAIL_HOST,
-        "port": settings.EMAIL_PORT,
-        "use_tls": getattr(settings, "EMAIL_USE_TLS", None),
-        "host_user": settings.EMAIL_HOST_USER,
-        "password_set": bool(settings.EMAIL_HOST_PASSWORD),
-        "password_len": len(settings.EMAIL_HOST_PASSWORD or ""),
-        "default_from": settings.DEFAULT_FROM_EMAIL,
-        "contact_email": settings.CONTACT_EMAIL,
-        "timeout": getattr(settings, "EMAIL_TIMEOUT", None),
-        "recipients": email.recipients(),
-    }
+def _send_contact_email(contact, subject, body):
+    """Send the notification over HTTPS (Brevo) when configured, else SMTP.
 
-    output = StringIO()
-    started = time.time()
-    try:
-        connection = mail.get_connection(fail_silently=False)
-        connection.open()
-        try:
-            connection.connection.set_debuglevel(1)
-        except Exception:
-            pass
-        with redirect_stderr(output):
-            info["sent"] = connection.send_messages([email])
-        connection.close()
-        info["ok"] = True
-    except Exception as exc:
-        info["ok"] = False
-        info["error"] = f"{type(exc).__name__}: {exc}"
-        info["traceback"] = traceback.format_exc()[-1200:]
+    Render's free tier blocks outbound SMTP, so production uses Brevo's HTTPS
+    API. Local development keeps using Gmail SMTP.
+    """
+    recipient = settings.CONTACT_EMAIL
+    api_key = getattr(settings, "BREVO_API_KEY", "")
 
-    info["elapsed"] = round(time.time() - started, 3)
-    info["smtp_log"] = output.getvalue()[-2500:]
-    return json.dumps(info, default=str, indent=2)
+    if api_key:
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "api-key": api_key,
+                "accept": "application/json",
+                "content-type": "application/json",
+            },
+            json={
+                "sender": {
+                    "email": settings.BREVO_SENDER_EMAIL,
+                    "name": settings.BREVO_SENDER_NAME,
+                },
+                "to": [{"email": recipient}],
+                "replyTo": {"email": contact.email, "name": contact.name},
+                "subject": subject,
+                "textContent": body,
+            },
+            timeout=15,
+        )
+        response.raise_for_status()
+        return True
+
+    email = EmailMessage(
+        subject=subject,
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[recipient],
+        reply_to=[contact.email],
+    )
+    return email.send(fail_silently=False) > 0
 
 
 @api_view(["POST"])
 def contact_api(request):
-    serializer = ContactMessageSerializer(data=request.data)#Receives submitted JSON data
+    serializer = ContactMessageSerializer(data=request.data)
 
-    if serializer.is_valid():
-        contact=serializer.save()
-        subject= f"Portfolio Contact from {contact.name}"
-        
-        email_body = (
-            f"Name: {contact.name}\n"
-            f"Email: {contact.email}\n\n"
-            f"Message:\n{contact.message}"
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=400)
+
+    contact = serializer.save()
+    subject = f"Portfolio Contact from {contact.name}"
+    email_body = (
+        f"Name: {contact.name}\n"
+        f"Email: {contact.email}\n\n"
+        f"Message:\n{contact.message}"
+    )
+
+    try:
+        sent = _send_contact_email(contact, subject, email_body)
+    except Exception:
+        logger.exception(
+            "Contact email failed for message %s (to=%s)",
+            contact.id,
+            settings.CONTACT_EMAIL,
+        )
+        sent = False
+    else:
+        logger.info(
+            "Contact email %s for message %s (to=%s)",
+            "sent" if sent else "was not accepted",
+            contact.id,
+            settings.CONTACT_EMAIL,
         )
 
-        email = EmailMessage(
-            subject=subject,
-            body=email_body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[settings.CONTACT_EMAIL],#my mail
-            reply_to=[contact.email],
-        )
-
-        # TEMPORARY diagnostic: a probe submission stores the real SMTP
-        # transcript on the message row so it can be inspected from the
-        # database without exposing it publicly. Remove once resolved.
-        if contact.email.strip().lower() == "diag@local.test":
-            contact.message = "DIAG\n" + _email_diagnostics(email)
-            contact.save(update_fields=["message"])
-            return Response(
-                {"message": "Diagnostic stored."},
-                status=201
-            )
-
-        try:
-            sent = email.send(fail_silently=False)
-            logger.info(
-                "Contact email %s for message %s (to=%s)",
-                "sent" if sent else "was not accepted",
-                contact.id,
-                settings.CONTACT_EMAIL,
-            )
-
-        except Exception:
-            logger.exception(
-                "Contact email failed for message %s (to=%s)",
-                contact.id,
-                settings.CONTACT_EMAIL,
-            )
-            return Response(
-                {
-                    "message": (
-                        "Your message was saved, "
-                        "but the email could not be sent."
-                    )
-                },
-                status=500
-            )
-
-        if not sent:
-            return Response(
-                {
-                    "message": (
-                        "Your message was saved, "
-                        "but the email could not be sent."
-                    )
-                },
-                status=500
-            )
-
-        
-
+    if not sent:
         return Response(
             {
-                "message": "Your message has been sent successfully!"
+                "message": (
+                    "Your message was saved, "
+                    "but the email could not be sent."
+                )
             },
-            status=201
+            status=500
         )
 
     return Response(
-        serializer.errors,
-        status=400
+        {"message": "Your message has been sent successfully!"},
+        status=201
     )
