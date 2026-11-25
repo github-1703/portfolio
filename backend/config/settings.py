@@ -20,10 +20,23 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS",
-    "localhost,127.0.0.1"
-).split(",")
+ALLOWED_HOSTS = list(
+    dict.fromkeys(
+        [
+            host.strip()
+            for host in os.environ.get(
+                "ALLOWED_HOSTS",
+                "localhost,127.0.0.1,portfolio-backend-89s1.onrender.com",
+            ).split(",")
+            if host.strip()
+        ]
+        + [
+            "localhost",
+            "127.0.0.1",
+            "portfolio-backend-89s1.onrender.com",
+        ]
+    )
+)
 
 # Application definition
 
@@ -123,15 +136,49 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-CORS_ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ALLOWED_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173",
-).split(",")
+# Origins allowed to call this API from a browser.
+# The deployed frontend origins are always allowed, even if the hosting
+# dashboard sets CORS_ALLOWED_ORIGINS to a partial list.
+_SITE_ORIGINS = [
+    "https://shahprashant.com.np",
+    "https://www.shahprashant.com.np",
+]
+
+CORS_ALLOWED_ORIGINS = list(
+    dict.fromkeys(
+        [
+            origin.strip()
+            for origin in os.environ.get(
+                "CORS_ALLOWED_ORIGINS",
+                "http://localhost:5173,http://127.0.0.1:5173,"
+                + ",".join(_SITE_ORIGINS),
+            ).split(",")
+            if origin.strip()
+        ]
+        + _SITE_ORIGINS
+    )
+)
+
+# Lets Django accept HTTPS POSTs (contact form, admin login) from the live site.
+CSRF_TRUSTED_ORIGINS = list(
+    dict.fromkeys(
+        [
+            origin.strip()
+            for origin in os.environ.get(
+                "CSRF_TRUSTED_ORIGINS", ",".join(_SITE_ORIGINS)
+            ).split(",")
+            if origin.strip()
+        ]
+        + _SITE_ORIGINS
+    )
+)
 
 EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST="smtp.gmail.com"
 EMAIL_PORT=587
 EMAIL_USE_TLS= True
+# Fail fast instead of letting the browser request hang for minutes.
+EMAIL_TIMEOUT = 15
 
 # acess using .env file
 EMAIL_HOST_USER= os.environ.get("EMAIL_HOST_USER")

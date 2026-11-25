@@ -1,8 +1,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
+// Only fall back to localhost during local development. In a production build
+// a missing VITE_API_BASE_URL must not turn into requests to the visitor's
+// own machine (which show up as an unhelpful "Failed to fetch").
 const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000"
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? "http://127.0.0.1:8000" : "")
 ).replace(/\/+$/, "");
 
 // The backend is only needed for the contact form now. When this page is opened
@@ -20,7 +24,7 @@ function Contact({ formData, setFormData }) {
   });
 
   useEffect(() => {
-    if (backendWarmed) return;
+    if (backendWarmed || !API_BASE_URL) return;
 
     const warmBackend = () => {
       if (backendWarmed) return;
@@ -54,8 +58,17 @@ function Contact({ formData, setFormData }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSending(true);
     setStatus({ type: "", message: "" });
+
+    if (!API_BASE_URL) {
+      setStatus({
+        type: "error",
+        message: "Contact form is not configured. Please email me directly.",
+      });
+      return;
+    }
+
+    setIsSending(true);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/contact/`, {
@@ -82,9 +95,17 @@ function Contact({ formData, setFormData }) {
     } catch (error) {
       console.error("Error sending message:", error);
 
+      // A "Failed to fetch" TypeError means the request never reached the
+      // server (offline, CORS, DNS, or backend asleep). Give a clearer hint
+      // than the browser's default wording.
+      const isNetworkError =
+        error instanceof TypeError || error.message === "Failed to fetch";
+
       setStatus({
         type: "error",
-        message: error.message || "Failed to send message",
+        message: isNetworkError
+          ? "Could not reach the server. Please check your connection and try again."
+          : error.message || "Failed to send message",
       });
     } finally {
       setIsSending(false);
