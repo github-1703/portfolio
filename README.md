@@ -1,6 +1,6 @@
 # Portfolio
 
-A minimal portfolio site built with React and Vite.
+A minimal portfolio site built with React and djnago.
 
 Live at: [shahprashant.com.np](https://shahprashant.com.np)
 
